@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy List - Лабораторна робота</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <main class="container">
+        <section class="products-section">
+            <div class="add-product-form">
+                <input type="text" placeholder="Назва товару" aria-label="Назва товару">
+                <button type="button" class="btn-add" data-tooltip="Додати товар у список">Додати</button>
+            </div>
+
+            <div class="products-list">
+                <div class="product-item">
+                    <span class="product-name">Помідори</span>
+                    <div class="controls-wrapper">
+                        <div class="quantity-controls">
+                            <button type="button" class="btn-circle btn-minus" aria-label="Зменшити" data-tooltip="Зменшити кількість">−</button>
+                            <span class="quantity-value">1</span>
+                            <button type="button" class="btn-circle btn-plus" aria-label="Збільшити" data-tooltip="Збільшити кількість">+</button>
+                        </div>
+                        <div class="action-buttons">
+                            <button type="button" class="btn-status" data-tooltip="Позначити як куплене">Куплено</button>
+                            <button type="button" class="btn-circle btn-delete" aria-label="Видалити" data-tooltip="Вилучити зі списку">×</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-item">
+                    <span class="product-name">Печиво</span>
+                    <div class="controls-wrapper">
+                        <div class="quantity-controls">
+                            <button type="button" class="btn-circle btn-minus" aria-label="Зменшити" data-tooltip="Зменшити кількість">−</button>
+                            <span class="quantity-value">1</span>
+                            <button type="button" class="btn-circle btn-plus" aria-label="Збільшити" data-tooltip="Збільшити кількість">+</button>
+                        </div>
+                        <div class="action-buttons">
+                            <button type="button" class="btn-status" data-tooltip="Позначити як куплене">Куплено</button>
+                            <button type="button" class="btn-circle btn-delete" aria-label="Видалити" data-tooltip="Вилучити зі списку">×</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-item">
+                    <span class="product-name">Сир</span>
+                    <div class="controls-wrapper">
+                        <div class="quantity-controls">
+                            <button type="button" class="btn-circle btn-minus" aria-label="Зменшити" data-tooltip="Зменшити кількість">−</button>
+                            <span class="quantity-value">1</span>
+                            <button type="button" class="btn-circle btn-plus" aria-label="Збільшити" data-tooltip="Збільшити кількість">+</button>
+                        </div>
+                        <div class="action-buttons">
+                            <button type="button" class="btn-status" data-tooltip="Позначити як куплене">Куплено</button>
+                            <button type="button" class="btn-circle btn-delete" aria-label="Видалити" data-tooltip="Вилучити зі списку">×</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary-section">
+            <div class="summary-box">
+                <h2>Залишилося</h2>
+                <div class="stats-badges">
+                    <span class="stats-badge">Помідори <mark>1</mark></span>
+                    <span class="stats-badge">Печиво <mark>1</mark></span>
+                    <span class="stats-badge">Сир <mark>1</mark></span>
+                </div>
+            </div>
+            
+            <div class="summary-box">
+                <h2>Куплено</h2>
+                <div class="stats-badges">
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="student-badge">
+        <div class="badge-main-text">Buy List</div>
+        <div class="badge-hidden-text">
+            <span>Created by:</span>
+            <strong>Гладка Вікторія</strong>
+        </div>
+    </div>
+
+</body>
+</html>
