@@ -20,13 +20,11 @@
 
 const API = "https://jsonplaceholder.typicode.com";
 
-// Селектори елементів
 const postForm = document.getElementById('post-form');
 const postsList = document.getElementById('posts');
 const errorSpan = document.getElementById('error');
 const submitBtn = postForm.querySelector('button[type="submit"]');
 
-// Функція для створення HTML-розмітки поста
 function createPostHTML(post, isNew = false) {
   return `
     <li class="${isNew ? 'new' : ''}">
@@ -36,7 +34,6 @@ function createPostHTML(post, isNew = false) {
   `;
 }
 
-// 1. GET 5 існуючих постів при завантаженні сторінки
 async function loadInitialPosts() {
   try {
     const response = await fetch(`${API}/posts?_limit=5`);
@@ -49,18 +46,15 @@ async function loadInitialPosts() {
   }
 }
 
-// 2. Обробка відправки форми
 postForm.addEventListener('submit', async (e) => {
-  e.preventDefault(); // Скасовуємо стандартне перезавантаження сторінки
-  errorSpan.textContent = ''; // Очищуємо попередні помилки
+  e.preventDefault();
+  errorSpan.textContent = '';
 
-  // Зчитуємо дані з форми
   const formData = new FormData(postForm);
   const title = formData.get('title').trim();
   const body = formData.get('body').trim();
   const userId = Number(formData.get('userId'));
 
-  // Валідація
   if (!title) {
     errorSpan.textContent = 'Заголовок не може бути порожнім.';
     return;
@@ -70,13 +64,11 @@ postForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Зміна стану кнопки: disabled та текст "Надсилаємо..."
   submitBtn.disabled = true;
   const originalBtnText = submitBtn.textContent;
   submitBtn.textContent = 'Надсилаємо…';
 
   try {
-    // POST запит
     const response = await fetch(`${API}/posts`, {
       method: 'POST',
       headers: {
@@ -90,20 +82,15 @@ postForm.addEventListener('submit', async (e) => {
     }
 
     const newPost = await response.json();
-
-    // Додаємо новий пост на початок списку (prepend)
     postsList.insertAdjacentHTML('afterbegin', createPostHTML(newPost, true));
 
-    // Очищаємо форму після успіху
     postForm.reset();
   } catch (err) {
     errorSpan.textContent = `Помилка відправки: ${err.message}`;
   } finally {
-    // Повертаємо кнопку в початковий стан у будь-якому випадку
     submitBtn.disabled = false;
     submitBtn.textContent = originalBtnText;
   }
 });
 
-// Ініціалізація програми
 loadInitialPosts();
