@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Гра "П'ятнашки"</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;padding:24px 12px;display:flex;justify-content:center}
+    .wrap{width:100%;max-width:680px}
+    h1{text-align:center;font-size:1.7rem;font-weight:700;color:#2c3e50;margin-bottom:4px}
+    .sub{text-align:center;font-size:.85rem;color:#999;margin-bottom:14px}
+
+    .board-panel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid #dde1ea;border-radius:6px;padding:10px 16px;margin-bottom:10px}
+    .lbl{font-size:.82rem;color:#888}
+    .val{font-size:1.15rem;font-weight:700;color:#2c3e50;min-width:40px}
+    .controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+    select{padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:.85rem}
+    .bp{padding:6px 14px;background:#4f7ef7;color:#fff;border:none;border-radius:5px;font-weight:600;cursor:pointer;font-size:.85rem}
+    .bs{padding:6px 14px;background:#fff;color:#333;border:1px solid #ccc;border-radius:5px;font-weight:600;cursor:pointer;font-size:.85rem}
+
+    .win{display:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;text-align:center;padding:10px;border-radius:6px;font-weight:600;margin-bottom:10px}
+    .win.show{display:block}
+
+    /* WDR-style pivot */
+    .wdr-outer{background:#fff;border:1px solid #dde1ea;border-radius:4px;overflow:hidden}
+    .wdr-topbar{background:#f7f8fa;border-bottom:1px solid #dde1ea;padding:6px 12px;font-size:.75rem;color:#aaa}
+    .wdr-scroll{overflow:auto}
+
+    table.pv{border-collapse:collapse;width:100%}
+    table.pv th, table.pv td{border:1px solid #dde1ea}
+
+    /* кут і заголовки стовпців */
+    table.pv thead th{background:#f7f8fa;color:#555;font-size:.78rem;font-weight:600;text-align:center;padding:8px 4px}
+    table.pv thead th.corner{width:50px;min-width:50px}
+
+    /* заголовки рядків */
+    table.pv tbody td.rh{background:#f7f8fa;color:#555;font-size:.78rem;font-weight:600;text-align:center;padding:0;width:50px;min-width:50px}
+
+    /* клітинки даних */
+    table.pv tbody td.dc{padding:0;text-align:center;vertical-align:middle}
+
+    .tile{display:flex;align-items:center;justify-content:center;width:100%;font-weight:700;color:#2c3e50;background:#f4f6fb;cursor:pointer;user-select:none;transition:background .12s,transform .1s}
+    .tile:hover{background:#dce7fd;transform:scale(1.05)}
+    .tile:active{transform:scale(.95)}
+    .empty{background:#e8eaef!important;cursor:default!important;transform:none!important}
+    .ok{background:#d5f5e3!important;color:#1a7a40!important}
+
+    /* підсумки */
+    table.pv tfoot td{background:#f7f8fa;font-size:.74rem;color:#bbb;text-align:center;padding:5px 2px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Гра "П'ятнашки"</h1>
+  <p class="sub">Переміщайте плитки та збери їх у правильному порядку</p>
+
+  <div class="board-panel">
+    <div style="display:flex;align-items:center;gap:6px"><span class="lbl">Ходи:</span><span class="val" id="mc">0</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><span class="lbl">Час:</span><span class="val" id="tm">00:00</span></div>
+    <div class="controls">
+      <select id="sz"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
+      <button class="bp" onclick="newGame()">Нова гра</button>
+      <button class="bs" onclick="newGame()">Перемішати</button>
+    </div>
+  </div>
+
+  <div class="win" id="win">🎉 Вітаємо! Виграно за <span id="wm"></span> ходів та <span id="wt"></span>!</div>
+
+  <div class="wdr-outer">
+    <div class="wdr-topbar">Рядки: Рядок &nbsp;|&nbsp; Стовпці: Стовпець &nbsp;|&nbsp; Значення: Плитка (Сума)</div>
+    <div class="wdr-scroll">
+      <table class="pv" id="pv"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+var N=4, board=[], moves=0, secs=0, tid=null, active=false;
+
+function solvedB(n){var b=[];for(var i=1;i<n*n;i++)b.push(i);b.push(0);return b;}
+function solvable(b,n){
+  var arr=b.filter(function(x){return x!==0;}),inv=0;
+  for(var i=0;i<arr.length-1;i++)for(var j=i+1;j<arr.length;j++)if(arr[i]>arr[j])inv++;
+  if(n%2===1)return inv%2===0;
+  return(inv+n-Math.floor(b.indexOf(0)/n))%2===1;
+}
+function won(b){for(var i=0;i<b.length-1;i++)if(b[i]!==i+1)return false;return b[b.length-1]===0;}
+function shuffle(b,n){
+  var a=b.slice(),t,i,j;
+  do{for(i=a.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}}
+  while(!solvable(a,n)||won(a));
+  return a;
+}
+
+function startTimer(){clearInterval(tid);secs=0;showT();tid=setInterval(function(){secs++;showT();},1000);}
+function stopTimer(){clearInterval(tid);}
+function showT(){document.getElementById('tm').textContent=pad(Math.floor(secs/60))+':'+pad(secs%60);}
+function pad(x){return String(x).padStart(2,'0');}
+function fmtT(s){var m=Math.floor(s/60);s=s%60;return m>0?m+' хв '+s+' с':s+' с';}
+
+window.moveTile=function(num){
+  if(!active)return;
+  var idx=board.indexOf(num),e=board.indexOf(0);
+  var r=Math.floor(idx/N),c=idx%N,er=Math.floor(e/N),ec=e%N;
+  if(!((r===er&&Math.abs(c-ec)===1)||(c===ec&&Math.abs(r-er)===1)))return;
+  board[e]=num;board[idx]=0;
+  moves++;document.getElementById('mc').textContent=moves;
+  render();
+  setTimeout(function(){
+    if(won(board)){
+      stopTimer();active=false;
+      document.getElementById('wm').textContent=moves;
+      document.getElementById('wt').textContent=fmtT(secs);
+      document.getElementById('win').classList.add('show');
+    }
+  },300);
+};
+
+function render(){
+  var n=N;
+  var cw=n<=3?120:n>=5?75:92;
+  var ch=n<=3?108:n>=5?70:84;
+  var fs=n<=3?'1.9rem':n>=5?'1.1rem':'1.55rem';
+  var html='';
+
+  // thead
+  html+='<thead><tr><th class="corner"></th>';
+  for(var c=1;c<=n;c++) html+='<th style="min-width:'+cw+'px;width:'+cw+'px">С'+c+'</th>';
+  html+='</tr></thead>';
+
+  // tbody
+  html+='<tbody>';
+  for(var r=0;r<n;r++){
+    html+='<tr><td class="rh">Р'+(r+1)+'</td>';
+    for(var c2=0;c2<n;c2++){
+      var v=board[r*n+c2];
+      html+='<td class="dc" style="width:'+cw+'px;height:'+ch+'px">';
+      if(v===0){
+        html+='<div class="tile empty" style="height:'+ch+'px"></div>';
+      } else {
+        var good=(board.indexOf(v)===v-1);
+        html+='<div class="tile'+(good?' ok':'')+'" style="height:'+ch+'px;font-size:'+fs+'" onclick="moveTile('+v+')">'+v+'</div>';
+      }
+      html+='</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</tbody>';
+
+  // tfoot — суми стовпців
+  html+='<tfoot><tr><td style="background:#f7f8fa;border:1px solid #dde1ea;font-size:.74rem;color:#bbb;padding:5px">Сума</td>';
+  for(var c3=0;c3<n;c3++){
+    var s=0;for(var r2=0;r2<n;r2++)s+=board[r2*n+c3];
+    html+='<td style="background:#f7f8fa;border:1px solid #dde1ea;font-size:.74rem;color:#bbb;text-align:center;padding:5px">'+s+'</td>';
+  }
+  html+='</tr></tfoot>';
+
+  document.getElementById('pv').innerHTML=html;
+}
+
+function newGame(){
+  N=parseInt(document.getElementById('sz').value,10);
+  board=shuffle(solvedB(N),N);
+  moves=0;document.getElementById('mc').textContent='0';
+  document.getElementById('win').classList.remove('show');
+  active=true;startTimer();render();
+}
+
+// Старт
+board=shuffle(solvedB(N),N);
+active=true;startTimer();render();
+</script>
+</body>
+</html>
