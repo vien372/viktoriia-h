@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мій Плейлист | SortableJS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --surface-hover: #2a2a2a;
+            --text-main: #ffffff;
+            --text-muted: #b3b3b3;
+            --accent-color: #1db954;
+            --danger-color: #e91429;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .playlist-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--surface-color);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            border: 1px solid #282828;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .playlist {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: transparent;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            user-select: none;
+            border: 1px solid transparent;
+        }
+
+        .track-item:hover {
+            background-color: var(--surface-hover);
+        }
+
+        .track-item:active {
+            cursor: grabbing;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #333 !important;
+            border: 1px dashed var(--text-muted);
+        }
+
+        .sortable-chosen {
+            background-color: var(--surface-hover);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .drag-handle {
+            margin-right: 15px;
+            color: var(--text-muted);
+            cursor: grab;
+            font-size: 18px;
+        }
+
+        .track-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding-right: 10px;
+        }
+
+        .track-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .track-artist {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .track-duration {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-right: 15px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger-color);
+            background-color: rgba(233, 20, 41, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="playlist-container">
+        <h2>Мій Плейлист</h2>
+        <div class="subtitle">Перетягуйте треки для зміни порядку</div>
+        
+        <ul id="playlist" class="playlist">
+            <li class="track-item" data-title="Тримай">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Тримай</span>
+                    <span class="track-artist">Христина Соловій</span>
+                </div>
+                <span class="track-duration">3:45</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Шум">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Шум</span>
+                    <span class="track-artist">Go_A</span>
+                </div>
+                <span class="track-duration">3:03</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Дежавю">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Дежавю</span>
+                    <span class="track-artist">Артем Пивоваров</span>
+                </div>
+                <span class="track-duration">3:26</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Стефанія">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Стефанія</span>
+                    <span class="track-artist">Kalush Orchestra</span>
+                </div>
+                <span class="track-duration">2:59</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="М'ята">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">М'ята</span>
+                    <span class="track-artist">KAZKA</span>
+                </div>
+                <span class="track-duration">3:40</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Герої вмирають">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Герої вмирають</span>
+                    <span class="track-artist">Стасік</span>
+                </div>
+                <span class="track-duration">3:15</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Вільна">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Вільна</span>
+                    <span class="track-artist">Тіна Кароль & Юлія Саніна</span>
+                </div>
+                <span class="track-duration">3:17</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+            <li class="track-item" data-title="Люди">
+                <div class="drag-handle">☰</div>
+                <div class="track-info">
+                    <span class="track-title">Люди</span>
+                    <span class="track-artist">Бумбокс</span>
+                </div>
+                <span class="track-duration">4:32</span>
+                <button class="delete-btn" title="Видалити трек">&times;</button>
+            </li>
+        </ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    
+    <script>
+        const playlistElement = document.getElementById('playlist');
+
+        function logCurrentOrder() {
+            const tracks = playlistElement.querySelectorAll('.track-item');
+            const order = Array.from(tracks).map(track => track.getAttribute('data-title'));
+            
+            console.log("%c🎵 Новий порядок плейлиста:", "color: #1db954; font-weight: bold; font-size: 12px;");
+            console.log(order);
+        }
+
+        const sortable = new Sortable(playlistElement, {
+            animation: 150,     
+            handle: '.drag-handle', 
+            ghostClass: 'sortable-ghost',  
+            chosenClass: 'sortable-chosen', 
+
+            onEnd: function (evt) {
+                if (evt.oldIndex !== evt.newIndex) {
+                    logCurrentOrder();
+                }
+            }
+        });
+
+        playlistElement.addEventListener('click', function(event) {
+            const deleteBtn = event.target.closest('.delete-btn');
+            
+            if (deleteBtn) {
+                const trackItem = deleteBtn.closest('.track-item');
+                const title = trackItem.getAttribute('data-title');
+                
+                trackItem.style.opacity = '0';
+                trackItem.style.transform = 'scale(0.9)';
+                trackItem.style.transition = 'all 0.2s ease';
+                
+                setTimeout(() => {
+                    trackItem.remove();
+                    console.log(`Видалено трек: "${title}"`);
+                    logCurrentOrder();
+                }, 200);
+            }
+        });
+
+        logCurrentOrder();
+    </script>
+</body>
+</html>
