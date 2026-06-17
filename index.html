@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Гра "П'ятнашки"</title>
+  
+  <link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet"/>
+  <script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;padding:24px 12px;display:flex;justify-content:center}
+    .wrap{width:100%;max-width:600px}
+    h1{text-align:center;font-size:1.7rem;font-weight:700;color:#2c3e50;margin-bottom:4px}
+    .sub{text-align:center;font-size:.85rem;color:#999;margin-bottom:14px}
+
+    .board-panel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid #dde1ea;border-radius:6px;padding:10px 16px;margin-bottom:10px}
+    .lbl{font-size:.82rem;color:#888}
+    .val{font-size:1.15rem;font-weight:700;color:#2c3e50;min-width:40px}
+    .controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+    select{padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:.85rem}
+    .bp{padding:6px 14px;background:#4f7ef7;color:#fff;border:none;border-radius:5px;font-weight:600;cursor:pointer;font-size:.85rem}
+
+    .win{display:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;text-align:center;padding:10px;border-radius:6px;font-weight:600;margin-bottom:10px}
+    .win.show{display:block}
+
+    body div#wdr-component .wdr-ui-element[data-wdr-id="wdr-fields-grid"],
+    body div#wdr-component .wdr-grid-layout .wdr-header { 
+        display: none; 
+    }
+    
+    body div#wdr-component .wdr-grid-layout {
+        border: 2px solid #2c3e50;
+        margin: 0 auto;
+    }
+
+    body div#wdr-component .wdr-grid-layout .wdr-cell {
+      height: 70px;
+      font-weight: 700;
+      font-size: 1.6rem;
+      text-align: center;
+      vertical-align: middle;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    body div#wdr-component .wdr-grid-layout .wdr-cell.number-tile {
+        background-color: #f4f6fb;
+        color: #2c3e50;
+    }
+    
+    body div#wdr-component .wdr-grid-layout .wdr-cell.number-tile:hover {
+        background-color: #dce7fd;
+    }
+
+    body div#wdr-component .wdr-grid-layout .wdr-cell.empty-tile {
+        background-color: #e8eaef;
+        cursor: default
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Гра "П'ятнашки"</h1>
+
+  <div class="board-panel">
+    <div style="display:flex;align-items:center;gap:6px"><span class="lbl">Ходи:</span><span class="val" id="mc">0</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><span class="lbl">Час:</span><span class="val" id="tm">00:00</span></div>
+    <div class="controls">
+      <select id="sz"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
+      <button class="bp" onclick="newGame()">Нова гра</button>
+    </div>
+  </div>
+
+  <div class="win" id="win">Вітаємо! Виграно за <span id="wm"></span> ходів та <span id="wt"></span>!</div>
+
+  <div id="wdr-component"></div>
+</div>
+
+<script>
+var N=4, board=[], moves=0, secs=0, tid=null, active=false;
+var pivot = null;
+
+function solvedB(n){var b=[];for(var i=1;i<n*n;i++)b.push(i);b.push(0);return b;}
+function solvable(b,n){
+  var arr=b.filter(function(x){return x!==0;}),inv=0;
+  for(var i=0;i<arr.length-1;i++)for(var j=i+1;j<arr.length;j++)if(arr[i]>arr[j])inv++;
+  if(n%2===1)return inv%2===0;
+  return(inv+n-Math.floor(b.indexOf(0)/n))%2===1;
+}
+function won(b){for(var i=0;i<b.length-1;i++)if(b[i]!==i+1)return false;return b[b.length-1]===0;}
+function shuffle(b,n){
+  var a=b.slice(),t,i,j;
+  do{for(i=a.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}}
+  while(!solvable(a,n)||won(a));
+  return a;
+}
+
+function startTimer(){clearInterval(tid);secs=0;showT();tid=setInterval(function(){secs++;showT();},1000);}
+function stopTimer(){clearInterval(tid);}
+function showT(){document.getElementById('tm').textContent=pad(Math.floor(secs/60))+':'+pad(secs%60);}
+function pad(x){return String(x).padStart(2,'0');}
+function fmtT(s){var m=Math.floor(s/60);s=s%60;return m>0?m+' хв '+s+' с':s+' с';}
+
+function prepareData() {
+  var data = [];
+  for(var r=0; r<N; r++) {
+    for(var c=0; c<N; c++) {
+      data.push({
+        "Рядок": "Р" + r,
+        "Стовпець": "С" + c,
+        "Плитка": board[r*N + c]
+      });
+    }
+  }
+  return data;
+}
+
+function render() {
+  var report = {
+    dataSource: {
+      data: prepareData()
+    },
+    slice: {
+      rows: [{ uniqueName: "Рядок" }],
+      columns: [{ uniqueName: "Стовпець" }],
+      measures: [{ uniqueName: "Плитка", aggregation: "sum" }]
+    },
+    options: {
+      grid: { 
+        showHeaders: false,          
+        showGrandTotals: "none",     
+        showFilter: false,           
+        showHierarchyCaptions: false
+      }
+    }
+  };
+
+  if (!pivot) {
+    pivot = new WebDataRocks({
+      container: "#wdr-component",
+      toolbar: false,
+      report: report,
+      
+
+      customizeCell: function(cell, data) {
+        if (data.type === "value") {
+          if (data.value === 0) {
+            cell.text = "";
+            cell.addClass("empty-tile");
+          } else {
+            cell.addClass("number-tile");
+          }
+        }
+      },
+
+      cellclick: function(cell) {
+        if (cell.type === "value" && cell.value !== undefined && cell.value > 0) {
+          moveTile(cell.value);
+        }
+      }
+    });
+  } else {
+    pivot.setReport(report);
+  }
+}
+
+function moveTile(num){
+  if(!active) return;
+  
+  var idx = board.indexOf(num); 
+  var e = board.indexOf(0);    
+  
+  var r = Math.floor(idx/N), c = idx%N;
+  var er = Math.floor(e/N), ec = e%N;
+  
+  if(!((r===er && Math.abs(c-ec)===1) || (c===ec && Math.abs(r-er)===1))) return;
+  
+  board[e] = num; 
+  board[idx] = 0;
+  
+  moves++; 
+  document.getElementById('mc').textContent = moves;
+
+  render();
+
+  if(won(board)){
+    stopTimer(); active=false;
+    document.getElementById('wm').textContent=moves;
+    document.getElementById('wt').textContent=fmtT(secs);
+    document.getElementById('win').classList.add('show');
+  }
+}
+
+function newGame(){
+  N = parseInt(document.getElementById('sz').value, 10);
+  board = shuffle(solvedB(N), N);
+  moves = 0; 
+  document.getElementById('mc').textContent = '0';
+  document.getElementById('win').classList.remove('show');
+  active = true; 
+  startTimer(); 
+  render();
+}
+
+window.onload = function() {
+  board = shuffle(solvedB(N), N);
+  active = true; 
+  startTimer();
+  render();
+};
+</script>
+</body>
+</html>
